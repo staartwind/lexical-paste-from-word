@@ -32,6 +32,8 @@ export class MSWordNormalizer {
             if ('mso-list' in style) {
                 if (!item.parentElement) continue
 
+                if (isList(item.parentElement!)) continue
+
                 const itemData = getListItemData(style)
 
                 res.push({
@@ -60,6 +62,10 @@ export class MSWordNormalizer {
 
         for (const itemLikeElement of itemLikeElements) {
             if (itemLikeElement.indent != null) {
+                // Reset the current stack if the previous used list does not continue with itemLikeElement
+                if ( !isListContinuation( itemLikeElement ) ) {
+                    stack.length = 0;
+                }
                 // Combined list ID for addressing encounter lists counters.
                 const originalListId = `${ itemLikeElement.id }:${ itemLikeElement.indent }`
 
@@ -514,3 +520,18 @@ function removeMsoListIgnoreSpans(parentElement: Element) {
         }
     })
 }
+
+function isListContinuation( currentItem: ListLikeElement ) {
+    const previousSibling = currentItem.element.previousSibling;
+
+    if ( !previousSibling ) {
+        // If it's a li inside ul or ol like in here: https://github.com/ckeditor/ckeditor5/issues/15964.
+        return isList( currentItem.element.parentElement! )
+    }
+
+    // Even with the same id the list does not have to be continuous (#43).
+    // @ts-expect-error
+    return isList( previousSibling )
+}
+
+const isList = (element: HTMLElement) => ['ul', 'ol'].includes(element.tagName.toLowerCase())
