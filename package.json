@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "publish-build": "pnpm build && pnpm publish --access public"
   },
   "files": [
     "dist"
